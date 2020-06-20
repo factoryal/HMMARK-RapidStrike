@@ -5,3 +5,6 @@
 #define PIN_LED_2 6
 
 #define PIN_BUZ 9
+
+#define PIN_BT_RX A2
+#define PIN_BT_TX A3
