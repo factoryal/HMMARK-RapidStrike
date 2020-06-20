@@ -1,4 +1,5 @@
 {
     "board": "arduino:avr:nano",
-    "configuration": "cpu=atmega328"
+    "configuration": "cpu=atmega328",
+    "sketch": "hmmark-rapidstrike.ino",
 }
