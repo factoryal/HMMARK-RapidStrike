@@ -12,11 +12,14 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #include "CountController.h"
 CountController counter;
 
+bool pressFlag = false;
+
 void keyEvent(uint8_t id, uint8_t event) {
     switch(event) {
         case EVENT::PRESS:
         digitalWrite(id + PIN_LED_1, HIGH);
         counter.increaseOne();
+        pressFlag = true;
         break;
 
         case EVENT::RELEASE:
@@ -45,6 +48,7 @@ uint8_t phase = PHASE::INIT;
 uint32_t firstPressResponse = 0xffffffff;
 uint32_t pressResult = 0;
 
+
 void setup() {
     lcd.begin();
     lcd.clear();
@@ -70,7 +74,7 @@ void setup() {
     delay(2000);
     phase = PHASE::READY;
     p_ready(PHASEMODE::SETUP);
-    randomSeed(analogRead(A0) ^ analogRead(A1) ^ analogRead(A2));
+    randomSeed(analogRead(A0) ^ analogRead(A1) ^ analogRead(A2) ^ analogRead(A3));
 }
 
 void loop() {
@@ -119,8 +123,8 @@ void p_ready(uint8_t mode) {
             bar += 1;
             char str[16];
             for(int i = 0; i < sizeof(str); i++) {
-                if(bar < i) str[i] = ' ';
-                else str[i] = 0xff;
+                if(bar < i) str[i] = '-';
+                else str[i] = '#';
             }
             lcd.setCursor(0, 1);
             lcd.print(str);
@@ -149,6 +153,8 @@ void p_standby(uint8_t mode) {
         lcd.setCursor(5, 0);
         lcd.print("READY?");
         rTimer = random(20, 50);
+        digitalWrite(PIN_LED_1, HIGH);
+        digitalWrite(PIN_LED_2, HIGH);
         break;
 
         case PHASEMODE::LOOP:
@@ -173,20 +179,24 @@ void p_measurement(uint8_t mode) {
         lcd.setCursor(0, 1);
         lcd.print("TIME[          ]");
         startTime = millis();
+        lcdTaskTime = 0;
         counter.set(0);
+        pressFlag = false;
         tone(PIN_BUZ, 1000);
+        digitalWrite(PIN_LED_1, LOW);
+        digitalWrite(PIN_LED_2, LOW);
         break;
 
         case PHASEMODE::LOOP:
         uint32_t duration = millis() - startTime;
-        // if(firstPressResponse > duration) firstPressResponse = duration;
+        if(!pressFlag) firstPressResponse = duration;
         btn[0].update(); btn[1].update();
         if(duration > 300) noTone(PIN_BUZ);
         if(duration > lcdTaskTime) {
             lcdTaskTime += 300;
             char str[11] = { 0 };
             uint8_t bar = 10 - duration / 1000;
-            for(int i = sizeof(str) - 1; i >= 0; i--) {
+            for(int i = sizeof(str) - 2; i >= 0; i--) {
                 if(bar > i) str[i] = '#';
                 else str[i] = '-';
             }
@@ -234,7 +244,7 @@ void p_result(uint8_t mode) {
         lcd.print(pressResult);
         lcd.setCursor(0, 1);
         lcd.print("Response: ");
-        lcd.setCursor(11, 1);
+        lcd.setCursor(10, 1);
         lcd.print(firstPressResponse);
         lcd.print("ms");
         delay(5000);
@@ -283,21 +293,12 @@ void p_upload(uint8_t mode) {
     switch(mode) {
         case PHASEMODE::SETUP:
         lcd.clear();
-        lcd.print("Connecting...");
-        lcd.setCursor(0, 1);
-        lcd.print("#---------------");
-        BT.flush();
-        BT.print('A');
-        lcd.setCursor(0, 1);
-        lcd.print("##--------------");
-        while(1) {
-            if(BT.available()) {
-                char c = BT.read();
-                if(c == '\n') {
-                    while(BT.available > 0)
-                }
-            }
-        }
+        lcd.print("Uploading...");
+        char buf[50];
+        sprintf(buf, "R %d %d\n", counter.get(), firstPressResponse);
+        BT.print(buf);
+        phase = PHASE::READY;
+        p_ready(PHASEMODE::SETUP);
         return;
 
         case PHASEMODE::LOOP:
