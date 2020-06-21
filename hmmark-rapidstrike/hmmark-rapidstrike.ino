@@ -32,7 +32,8 @@ enum PHASE {
     READY,
     STANDBY,
     MEASUREMENT,
-    RESULT
+    RESULT,
+    UPLOAD
 };
 
 enum PHASEMODE {
@@ -89,9 +90,14 @@ void loop() {
         p_measurement(PHASEMODE::LOOP);
         break;
 
-        // 게임 종료, 기록 전송
+        // 게임 종료, 기록 확인
         case PHASE::RESULT:
         p_result(PHASEMODE::LOOP);
+        break;
+
+        // 기록 전송
+        case PHASE::UPLOAD:
+        p_upload(PHASEMODE::LOOP);
         break;
     }
 }
@@ -204,6 +210,7 @@ void p_measurement(uint8_t mode) {
 void p_result(uint8_t mode) {
     static char buf[50];
     static int bufidx = 0;
+    static uint32_t waitStartTime = 0;
     switch(mode) {
         case PHASEMODE::SETUP:
         tone(PIN_BUZ, 1000);
@@ -230,19 +237,54 @@ void p_result(uint8_t mode) {
         lcd.setCursor(11, 1);
         lcd.print(firstPressResponse);
         lcd.print("ms");
+        delay(5000);
+
+        lcd.clear();
+        lcd.setCursor(2, 0);
+        lcd.print("Press 2 Btns");
+        lcd.setCursor(0, 1);
+        lcd.print(" to send Discord ");
+        waitStartTime = millis();
         break;
 
         case PHASEMODE::LOOP:
-        // check pc Response
-        if(BT.available()) {
-            char c = BT.read();
-            if(c != '\n') buf[bufidx++] = c;
-            else {
-                
+        btn[0].update(); btn[1].update();
+        if(!btn[0].status && !btn[1].status) {
+            waitStartTime = millis();
+            bar += 1;
+            char str[16];
+            for(int i = 0; i < sizeof(str); i++) {
+                if(bar < i) str[i] = ' ';
+                else str[i] = 0xff;
+            }
+            lcd.setCursor(0, 1);
+            lcd.print(str);
+            delay(100);
+            if(bar == 16) {
+                phase = PHASE::UPLOAD;
+                p_upload(PHASEMODE::SETUP);
             }
         }
-        
-        // send record data
+        else {
+            lcd.setCursor(0, 1);
+            lcd.print(" to send Discord ");
+            bar = 0;
+            delay(100);
+        }
+        if(millis() - waitStartTime > 10000) {
+            phase = PHASE::READY;
+            p_ready(PHASEMODE::SETUP);
+        }
         break;
+    }
+}
+
+void p_upload(uint8_t mode) {
+    switch(mode) {
+        case PHASEMODE::SETUP:
+        return;
+
+        case PHASEMODE::LOOP:
+        return;
     }
 }
