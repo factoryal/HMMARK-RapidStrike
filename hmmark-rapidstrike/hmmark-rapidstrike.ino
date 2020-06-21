@@ -111,8 +111,8 @@ void p_ready(uint8_t mode) {
     switch(mode) {
         case PHASEMODE::SETUP:
         lcd.clear();
-        lcd.setCursor(2, 0);
-        lcd.print("Press 2 Btns");
+        lcd.setCursor(0, 0);
+        lcd.print("  Press 2 Btns  ");
         lcd.setCursor(0, 1);
         lcd.print("    to Start    ");
         break;
@@ -121,8 +121,8 @@ void p_ready(uint8_t mode) {
         btn[0].update(); btn[1].update();
         if(!btn[0].status && !btn[1].status) {
             bar += 1;
-            char str[16];
-            for(int i = 0; i < sizeof(str); i++) {
+            char str[17] = { 0 };
+            for(int i = 0; i < sizeof(str) - 1; i++) {
                 if(bar < i) str[i] = '-';
                 else str[i] = '#';
             }
@@ -281,7 +281,7 @@ void p_result(uint8_t mode) {
             bar = 0;
             delay(100);
         }
-        if(millis() - waitStartTime > 10000) {
+        if(millis() - waitStartTime > 5000) {
             phase = PHASE::READY;
             p_ready(PHASEMODE::SETUP);
         }
@@ -290,13 +290,36 @@ void p_result(uint8_t mode) {
 }
 
 void p_upload(uint8_t mode) {
+    char rxbuf[50] = { 0 };
+    char rxbufidx = 0;
     switch(mode) {
         case PHASEMODE::SETUP:
         lcd.clear();
         lcd.print("Uploading...");
-        char buf[50];
-        sprintf(buf, "R %d %d\n", counter.get(), firstPressResponse);
-        BT.print(buf);
+        BT.print("R ");
+        BT.print(pressResult);
+        BT.print(' ');
+        BT.print(firstPressResponse);
+        BT.print('\n');
+        while(1) {
+            if(BT.available()) {
+                tone(PIN_BUZ, 1000, 100);
+                char c = BT.read();
+                if(c != '\n') rxbuf[rxbufidx++] = c;
+                else {
+                    if(!strcmp(rxbuf, "OK")) {
+                        lcd.clear();
+                        lcd.print("Upload");
+                        lcd.setCursor(0, 1);
+                        lcd.print("Completed!");
+                        delay(3000);
+                        break;
+                    }
+                    memset(rxbuf, 0, sizeof(rxbuf));
+                    rxbufidx = 0;
+                }
+            }
+        }
         phase = PHASE::READY;
         p_ready(PHASEMODE::SETUP);
         return;
