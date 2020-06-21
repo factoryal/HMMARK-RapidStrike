@@ -184,13 +184,12 @@ void p_measurement(uint8_t mode) {
         if(duration > 300) noTone(PIN_BUZ);
         if(duration > lcdTaskTime) {
             lcdTaskTime += 300;
-            char str[11];
+            char str[11] = { 0 };
             uint8_t bar = 10 - duration / 1000;
             for(int i = sizeof(str) - 1; i >= 0; i--) {
                 if(bar > i) str[i] = '#';
-                else str[i] = ' ';
+                else str[i] = '-';
             }
-            str[10] = NULL;
             lcd.setCursor(11, 0);
             lcd.print(counter.get());
             lcd.setCursor(5, 1);
@@ -211,11 +210,12 @@ void p_result(uint8_t mode) {
     static char buf[50];
     static int bufidx = 0;
     static uint32_t waitStartTime = 0;
+    static uint8_t bar = 0;
     switch(mode) {
         case PHASEMODE::SETUP:
         tone(PIN_BUZ, 1000);
         lcd.clear();
-        lcd.setCursor(0, 3);
+        lcd.setCursor(2, 0);
         lcd.print("!! FINISH !!");
         for(int i = 0; i < 10; i++) {
             digitalWrite(PIN_LED_1, HIGH);
@@ -252,10 +252,10 @@ void p_result(uint8_t mode) {
         if(!btn[0].status && !btn[1].status) {
             waitStartTime = millis();
             bar += 1;
-            char str[16];
-            for(int i = 0; i < sizeof(str); i++) {
-                if(bar < i) str[i] = ' ';
-                else str[i] = 0xff;
+            char str[17] = { 0 };
+            for(int i = 0; i < sizeof(str) - 1; i++) {
+                if(bar < i) str[i] = '-';
+                else str[i] = '#';
             }
             lcd.setCursor(0, 1);
             lcd.print(str);
@@ -267,7 +267,7 @@ void p_result(uint8_t mode) {
         }
         else {
             lcd.setCursor(0, 1);
-            lcd.print(" to send Discord ");
+            lcd.print("to Upload Record");
             bar = 0;
             delay(100);
         }
