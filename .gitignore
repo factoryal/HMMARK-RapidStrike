@@ -17,3 +17,4 @@
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode
 
 discord-bot/node_modules
+hmmark-rapidstrike/build/*

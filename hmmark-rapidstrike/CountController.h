@@ -6,7 +6,6 @@ private:
     int32_t cnt = 0;
 
 public:
-    CountController();
 
     void increaseOne() {
         cnt += 1;

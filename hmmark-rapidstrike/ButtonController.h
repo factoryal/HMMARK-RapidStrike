@@ -19,6 +19,8 @@ const uint8_t pin;
 	uint16_t long_press_time = 2000;
 
 public:
+    bool status = true;
+
 	ButtonController(const uint8_t pin) : pin(pin) {
 	}
 
@@ -49,11 +51,13 @@ public:
 			if(!nowRead && lastRead) {
 				lastReadTime = lastPressTime = nowTime;
 				event_callback(eventId, EVENT::PRESS);
+                status = false;
 			}
 			else if(!lastRead && nowRead) {
 				lastReadTime = nowTime;
 				long_press_callback_called = false;
 				event_callback(eventId, EVENT::RELEASE);
+                status = true;
 			}
 			else if(!lastRead && !nowRead && nowTime - lastPressTime > long_press_time && 	!long_press_callback_called) {
 					event_callback(eventId, EVENT::LONGPRESS);

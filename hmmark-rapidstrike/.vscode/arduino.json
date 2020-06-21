@@ -2,5 +2,6 @@
     "board": "arduino:avr:nano",
     "configuration": "cpu=atmega328",
     "sketch": "hmmark-rapidstrike.ino",
-    "port": "COM38"
+    "port": "COM38",
+    "output": "./build"
 }
