@@ -18,3 +18,4 @@
 
 discord-bot/node_modules
 hmmark-rapidstrike/build/*
+hmmark-rapidstrike/.vscode/c_cpp_properties.json
