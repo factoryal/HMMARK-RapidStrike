@@ -202,11 +202,47 @@ void p_measurement(uint8_t mode) {
 
 
 void p_result(uint8_t mode) {
+    static char buf[50];
+    static int bufidx = 0;
     switch(mode) {
         case PHASEMODE::SETUP:
+        tone(PIN_BUZ, 1000);
+        lcd.clear();
+        lcd.setCursor(0, 3);
+        lcd.print("!! FINISH !!");
+        for(int i = 0; i < 10; i++) {
+            digitalWrite(PIN_LED_1, HIGH);
+            digitalWrite(PIN_LED_2, HIGH);
+            delay(100);
+            digitalWrite(PIN_LED_1, LOW);
+            digitalWrite(PIN_LED_2, LOW);
+            delay(100);
+        }
+        noTone(PIN_BUZ);
+
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Result: ");
+        lcd.setCursor(10, 0);
+        lcd.print(pressResult);
+        lcd.setCursor(0, 1);
+        lcd.print("Response: ");
+        lcd.setCursor(11, 1);
+        lcd.print(firstPressResponse);
+        lcd.print("ms");
         break;
 
         case PHASEMODE::LOOP:
+        // check pc Response
+        if(BT.available()) {
+            char c = BT.read();
+            if(c != '\n') buf[bufidx++] = c;
+            else {
+                
+            }
+        }
+        
+        // send record data
         break;
     }
 }
