@@ -282,6 +282,22 @@ void p_result(uint8_t mode) {
 void p_upload(uint8_t mode) {
     switch(mode) {
         case PHASEMODE::SETUP:
+        lcd.clear();
+        lcd.print("Connecting...");
+        lcd.setCursor(0, 1);
+        lcd.print("#---------------");
+        BT.flush();
+        BT.print('A');
+        lcd.setCursor(0, 1);
+        lcd.print("##--------------");
+        while(1) {
+            if(BT.available()) {
+                char c = BT.read();
+                if(c == '\n') {
+                    while(BT.available > 0)
+                }
+            }
+        }
         return;
 
         case PHASEMODE::LOOP:
