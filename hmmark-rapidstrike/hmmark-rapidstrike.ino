@@ -28,8 +28,6 @@ void keyEvent(uint8_t id, uint8_t event) {
 	}
 }
 
-void keyNone(uint8_t id, uint8_t event) {}
-
 enum PHASE {
 	INIT = 0x00,
 	READY,
