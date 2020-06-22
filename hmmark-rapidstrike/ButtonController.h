@@ -3,7 +3,6 @@
 
 enum EVENT {
 	PRESS = 0x01,
-	LONGPRESS = 0x02,
 	RELEASE = 0x10
 };
 
@@ -12,11 +11,9 @@ const uint8_t pin;
 	void (*event_callback)(uint8_t, uint8_t) = NULL;
 	uint8_t eventId = 0xff;
 	bool lastRead = true;
-	bool long_press_callback_called = false;
 	uint32_t lastPressTime = 0;
 	uint32_t lastReadTime = 0;
 	uint16_t prevent_chattering_time = 20;
-	uint16_t long_press_time = 2000;
 
 public:
     bool status = true;
@@ -36,10 +33,6 @@ public:
 		eventId = id;
 	}
 
-	void setLongPressTime(uint16_t t) {
-        long_press_time = t;
-    }
-
 	void setPreventChatteringTime(uint16_t t) {
         prevent_chattering_time = t;
     }
@@ -55,13 +48,8 @@ public:
 			}
 			else if(!lastRead && nowRead) {
 				lastReadTime = nowTime;
-				long_press_callback_called = false;
 				event_callback(eventId, EVENT::RELEASE);
                 status = true;
-			}
-			else if(!lastRead && !nowRead && nowTime - lastPressTime > long_press_time && 	!long_press_callback_called) {
-					event_callback(eventId, EVENT::LONGPRESS);
-					long_press_callback_called = true;
 			}
 			lastRead = nowRead;
 		}
