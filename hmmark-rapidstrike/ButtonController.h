@@ -16,14 +16,14 @@ const uint8_t pin;
 	uint16_t prevent_chattering_time = 20;
 
 public:
-    bool status = true;
+	bool status = true;
 
 	ButtonController(const uint8_t pin) : pin(pin) {
 	}
 
 	void pullup(bool en) {
-        pinMode(pin, en << 1);
-    }
+		pinMode(pin, en << 1);
+	}
 
 	// 버튼 이벤트 발생시 콜백함수 지정
 	// id: 버튼에 아이디 값을 지정. 콜백함수 호출시 첫번째 인자로 들어감
@@ -34,8 +34,8 @@ public:
 	}
 
 	void setPreventChatteringTime(uint16_t t) {
-        prevent_chattering_time = t;
-    }
+		prevent_chattering_time = t;
+	}
 
 	void update() {
 		bool nowRead = digitalRead(pin);
@@ -44,12 +44,12 @@ public:
 			if(!nowRead && lastRead) {
 				lastReadTime = lastPressTime = nowTime;
 				event_callback(eventId, EVENT::PRESS);
-                status = false;
+				status = false;
 			}
 			else if(!lastRead && nowRead) {
 				lastReadTime = nowTime;
 				event_callback(eventId, EVENT::RELEASE);
-                status = true;
+				status = true;
 			}
 			lastRead = nowRead;
 		}
