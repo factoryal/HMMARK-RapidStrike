@@ -152,13 +152,30 @@ void p_standby(uint8_t mode) {
 		lcd.clear();
 		lcd.setCursor(5, 0);
 		lcd.print("READY?");
-		rTimer = random(20, 50);
+		do {
+			btn[0].update();
+			btn[1].update();
+			delay(10);
+		} while(!(btn[0].status && btn[1].status));
+		rTimer = random(200, 500);
 		digitalWrite(PIN_LED_1, HIGH);
 		digitalWrite(PIN_LED_2, HIGH);
 		break;
 
 		case PHASEMODE::LOOP:
-		delay(100);
+		btn[0].update();
+		btn[1].update();
+		if(!btn[0].status || !btn[1].status) {
+			lcd.clear();
+			lcd.setCursor(3, 0);
+			lcd.print("!! FOUL !!");
+			tone(PIN_BUZ, 1000);
+			delay(3000);
+			noTone(PIN_BUZ);
+			phase = PHASE::READY;
+			p_ready(PHASEMODE::SETUP);
+		}
+		delay(10);
 		if(--rTimer == 0) {
 			phase = PHASE::MEASUREMENT;
 			p_measurement(PHASEMODE::SETUP);
